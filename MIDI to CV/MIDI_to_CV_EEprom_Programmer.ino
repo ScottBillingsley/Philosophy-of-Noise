@@ -78,7 +78,6 @@ void eeprom_write(uint16_t dac_val, uint16_t address){
 
 uint16_t eeprom_read(uint16_t address){
   /* Read and return a stored dac value */
-  /* MIDI read will be (inNote - 36) * 2 and ((inNote - 36) * 2) + 1 */
   /* Read the MSB */
   byte MSB = EEPROM.read(address);
   /* Read the LSB */
