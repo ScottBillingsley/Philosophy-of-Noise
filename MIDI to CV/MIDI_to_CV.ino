@@ -1,6 +1,6 @@
 /*
                       MIDI to CV
-                Vernon Billingsley (c)2021
+                Vernon Billingsley (c)9/2021
 
         !!! Requires DAC values from MIDI_to_CV_Program_DAC.ino to
             be stored in EEprom by MIDI_to_CC_EEprom_Programmer.ino
@@ -34,8 +34,11 @@
 */
 
 #include <Wire.h>
+/* https://github.com/mathertel/RotaryEncoder */
 #include <RotaryEncoder.h>
+/* https://github.com/pfeerick/elapsedMillis */
 #include <elapsedMillis.h>
+/* https://github.com/FortySevenEffects/arduino_midi_library */
 #include <MIDI.h>
 #include <EEPROM.h>
 
@@ -86,7 +89,11 @@ boolean flip = false;
 /* Store the incoming note */
 byte buff[KYB_BUF];
 
+/* Array to hold the dac values read from EEprom */
 uint16_t dac_values[60];
+
+/* Hold the current note dac value */
+uint16_t theNote;
 
 /*Start the storage on address 0 and 1 */
 /*Each value takes 2 bytes of storage */
@@ -96,12 +103,21 @@ boolean PROGRAM_MODE = false;
 boolean NEW_NOTE = false;
 boolean button_pushed = false;
 
+/* The cell number of the array to store the current note */
 byte dac_value_cell = 0;
+
+/***   About the modulation  ***/
+boolean modulation = false;
+int mod_max;
+int mod_count;
+boolean mod_count_up = true;
+/* Aprox 10 Hz vibro for 1/2 semitone count, ie 32 */
+int mod_speed = 1562;
 
 /**************************  Functions ****************************/
 void dac_write(int cc) {
   Wire.beginTransmission(I2C_ADDRESS);
-  Wire.write(64);                     // cmd to update the DAC
+  Wire.write(64);             // cmd to update the DAC
   Wire.write(cc >> 4);        // the 8 most significant bits...
   Wire.write((cc & 15) << 4); // the 4 least significant bits...
   Wire.endTransmission();
@@ -119,13 +135,17 @@ void handleNoteOn(byte inChannel, byte inNote, byte inVelocity) {
       }
     }
   }
-
-  dac_write(dac_values[inNote - 36]);
+  /* Store the note dac value */
+  theNote = dac_values[inNote - 36];
+  /* Write value to the dac */
+  dac_write(theNote);
 
   if (PROGRAM_MODE) {
+    /* Store the cell number of the dac value */
     dac_value_cell = (inNote - 36);
     NEW_NOTE = true;
   }
+  /* Turn on the gate */
   GATE_ON;
 }
 
@@ -147,6 +167,28 @@ void handleNoteOff(byte inChannel, byte inNote, byte inVelocity) {
     GATE_OFF;
   }
 }
+
+void Pitch_Function(byte inChannel, int inValue) {
+  /* Add the shifted pitch bend value to the dac value */
+  /* +- 8190 / 64 = 127 aprox 2 semitones  */
+  dac_write(theNote + (inValue >> 6));
+}
+
+void CC_Function(byte inChannel, byte inControl, byte inValue) {
+  /* CC function 1 , modulation */
+  if (inControl == 1) {
+    /* Set the max mod count to inValue */
+    /* Aprox 1/2 semitone, 127 / 4 = 32 */
+    mod_max = inValue / 4;
+    /* If the value is greater tha zero turn on modulation */
+    if (inValue > 0) {
+      modulation = true;
+    } else {
+      modulation = false;
+    }
+  }
+}
+
 
 uint16_t eeprom_read(uint16_t address) {
   /* Read and return a stored dac value */
@@ -183,6 +225,8 @@ void setup() {
   //Setup the handlers for the  midi
   myMidi.setHandleNoteOn(handleNoteOn);
   myMidi.setHandleNoteOff(handleNoteOff);
+  myMidi.setHandlePitchBend(Pitch_Function);
+  myMidi.setHandleControlChange(CC_Function);
   //Start the midi
   myMidi.begin(MIDI_CHANNEL_OMNI);
 
@@ -222,8 +266,10 @@ void setup() {
 
 }/**************************  End Setup **************************/
 
+/* System timers */
 elapsedMillis debounce;
 elapsedMillis blink_led;
+elapsedMicros mod_time;
 
 /******************************************************************/
 /**************************** Loop ********************************/
@@ -254,6 +300,8 @@ void loop() {
   }
 
   /*************** Program Mode ************************/
+  /* In program mode, set the encoder to the dac       */
+  /* value of the current note...                      */
   if (PROGRAM_MODE) {
     if (NEW_NOTE) {
       encoder.setPosition(dac_values[dac_value_cell]);
@@ -290,7 +338,7 @@ void loop() {
       PORTB |= _BV (5); // digitalWrite (13, HIGH);
     }
 
-    /* Stop repeat prints */
+    /* Wait for the button to be released */
     if (((PINB & 0x01) == 1) && button_pushed) {
       button_pushed = false;
       debounce = 0;
@@ -299,5 +347,27 @@ void loop() {
 
 
   }/* End program mode */
+
+  /****        Modulation       **********/
+  if(modulation && mod_time >= mod_speed){
+    if(mod_count_up){
+      mod_count ++;
+      if(mod_count < mod_max){
+        dac_write(theNote + mod_count);
+      }else{
+        mod_count_up = false;
+      }
+    }
+    if(!mod_count_up){
+      mod_count --;
+      if(mod_count > (mod_max * -1)){
+        dac_write(theNote + mod_count);
+      }else{
+        mod_count_up = true;
+      }
+    }
+
+    mod_time = 0;  
+  }/* End modulation */
 
 }/*************************** End Loop *****************************/
