@@ -1,0 +1,3 @@
+A simple LFO using a ICL8038..Range from .08 to 50 Hz..
+Sine and Triangle out can be either Zero centered or above center..
+Square is 4.6 volt postive going suitable for TTL clock or gate...
