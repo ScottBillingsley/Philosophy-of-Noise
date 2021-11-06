@@ -1,0 +1,3 @@
+A ramp core VCO with pulse wave out and CA3046 for expo convertor..
+Based on Thomas Henry's X-4046 VCO....
+https://www.birthofasynth.com/Thomas_Henry/Pages/X-4046.html
