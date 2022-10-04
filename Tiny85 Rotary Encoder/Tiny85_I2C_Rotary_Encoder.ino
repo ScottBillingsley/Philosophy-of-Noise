@@ -6,7 +6,7 @@
                   I2C as a master sender...
                   Sends 0b001 , 1 as Up
                         0b100 , 4 as Down
-                        0b010 , 3 as Button pressed
+                        0b010 , 2 as Button pressed
 
 
             atTiny85                           
