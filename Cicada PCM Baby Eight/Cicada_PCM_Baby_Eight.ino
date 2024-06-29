@@ -242,10 +242,6 @@ int main() {
   /******************************************************************/
   while (1) {
 
-    /* Check the ADC..If finished store the results in the */
-    /* adc_array, change the mux and start the next sample */
-    //adc::read();
-
     if (new_button == true) {
       float freq;
       switch (button) {
