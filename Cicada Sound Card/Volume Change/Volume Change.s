@@ -1,74 +1,75 @@
-;			Cicada Sound Card Volume
-;			Vernon Billingsley c2024
+;			CICADA SOUND CARD VOLUME
+;			VERNON BILLINGSLEY C2024
 ; 
-;	A sample program for the Cicada Sound Card designed of the RC2014 Z80 single
-; 	board computer. The sound card should be in the default startup mode, ie MIDI mode,
-;	AR envelope mode, default GAIN..
+;	A SAMPLE PROGRAM FOR THE CICADA SOUND CARD DESIGNED OF THE RC2014 Z80 SINGLE
+; 	BOARD COMPUTER. THE SOUND CARD SHOULD BE IN THE DEFAULT STARTUP MODE, IE MIDI MODE,
+;	AR ENVELOPE MODE, DEFAULT GAIN..
 ; 
-            .ORG    0x8000 
+            .ORG    0X8000 
 ; 
-PORT        EQU     0x30 
-NOTE_ON     EQU     0x01 
-NOTE_OFF    EQU     0x00 
-VOLUME:     DB      0x40 
+PORT        EQU     0X30 	;CHANGE TO MATCH YOUR CARD
+NOTE_ON     EQU     0X01 
+NOTE_OFF    EQU     0X00 
+VOLUME:     DB      0X40 
 ; 
-START:      LD      a,0x9b ;Load the Middle C note to the A register
-            OUT     (0x30),a ;Send to the bus
+START:      LD      A,0X9B 	;LOAD THE MIDDLE C NOTE TO THE A REGISTER
+            OUT     (PORT),A 	;SEND TO THE BUS
 ; 
-            LD      bc,0x01 ;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
+            LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            CALL    DELAY 
 ; 
-            LD      a,NOTE_ON 
-            OUT     (0x30),a 
+            LD      A,NOTE_ON 
+            OUT     (PORT),A 
 ; 
-            LD      bc,0x01 ;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
+            LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            CALL    DELAY 
 ; 
-V_UP:       LD      hl,VOLUME ;Load the address of volume
-            LD      a,(hl) ;Load the contents at address of hl					
-            OUT     (0x30),a 
+V_UP:       LD      HL,VOLUME 	;LOAD THE ADDRESS OF VOLUME
+            LD      A,(HL) 	;LOAD THE CONTENTS AT ADDRESS OF HL					
+            OUT     (PORT),A 
 ; 
-            LD      bc,0x10 ;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
+            LD      BC,0X10 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            CALL    DELAY 
 ;			
-            LD      b,0x5f 
-            INC     (hl) 
-            LD      a,(hl) 
-            CP      b 
-            JP      nz,v_up 
+            LD      B,0X5F 
+            INC     (HL) 
+            LD      A,(HL) 
+            CP      B 
+            JP      NZ,V_UP 
 ; 
-V_DOWN:     LD      hl,VOLUME ;Load the address of volume
-            LD      a,(hl) ;Load the contents at address of hl					
-            OUT     (0x30),a 
+V_DOWN:     LD      HL,VOLUME 	;LOAD THE ADDRESS OF VOLUME
+            LD      A,(HL) 	;LOAD THE CONTENTS AT ADDRESS OF HL					
+            OUT     (PORT),A 
 ; 
-            LD      bc,0x10 ;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
+            LD      BC,0X10 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            CALL    DELAY 	
 ;			
-            LD      b,0x40 
-            DEC     (hl) 
-            LD      a,(hl) 
-            CP      b 
-            JP      nz,v_down 
+            LD      B,0X40 
+            DEC     (HL) 
+            LD      A,(HL) 
+            CP      B 
+            JP      NZ,V_DOWN 
 ; 
-            LD      a,NOTE_OFF 
-            OUT     (0x30),a 
+            LD      A,NOTE_OFF 
+            OUT     (PORT),A 
             RET      
 ; 
 ; 
-;*** Delay, aprox 250 mS per 0x100
-;    Counts loaded into register BC before call
+;*** DELAY, APROX 250 MS PER 0X100
+;    COUNTS LOADED INTO REGISTER BC BEFORE CALL
 DELAY:               
 
 OUTER:               
-            LD      de,0x200 
+            LD      DE,0X200 
 INNER:               
-            DEC     de 
-            LD      a,d 
-            OR      e 
-            JP      nz,inner 
-            DEC     bc 
-            LD      a,b 
-            OR      c 
-            JP      nz,outer 
+            DEC     DE 
+            LD      A,D 
+            OR      E 
+            JP      NZ,INNER 
+            DEC     BC 
+            LD      A,B 
+            OR      C 
+            JP      NZ,OUTER 
             RET      
 ;			
+			
