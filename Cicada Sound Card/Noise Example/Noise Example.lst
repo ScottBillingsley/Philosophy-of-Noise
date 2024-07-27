@@ -1,0 +1,102 @@
+0000                             ;			CICADA SOUND CARD VOLUME
+0000                             ;			VERNON BILLINGSLEY C2024
+0000                             ; 
+0000                             ;	A SAMPLE PROGRAM FOR THE CICADA SOUND CARD DESIGNED OF THE RC2014 Z80 SINGLE
+0000                             ; 	BOARD COMPUTER. THE SOUND CARD SHOULD BE IN THE DEFAULT STARTUP MODE, IE MIDI MODE,
+0000                             ;	AR ENVELOPE MODE, DEFAULT GAIN..
+0000                             ; 
+8000                          .ORG   0X8000   
+8000                             ; 
+8000                PORT:     EQU   0X30   ;CHANGE TO MATCH YOUR CARD
+8000                NOTE_ON:   EQU   0X01   
+8000                NOTE_OFF:   EQU   0X00   
+8000   40           VOLUME:   DB   0X40   
+8001                             ; 
+8001   3E 20        START:    LD   A,0X20   ;LOAD THE NOISE COMMAND TO THE A REGISTER
+8003   D3 30                  OUT   (PORT),A   ;SEND TO THE BUS
+8005                             ; 
+8005   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8008   CD 42 80               CALL   DELAY   
+800B                             ; 
+800B   3E 01                  LD   A,NOTE_ON   
+800D   D3 30                  OUT   (PORT),A   
+800F                             ; 
+800F   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8012   CD 42 80               CALL   DELAY   
+8015                             ; 
+8015   21 00 80     V_UP:     LD   HL,VOLUME   ;LOAD THE ADDRESS OF VOLUME
+8018   7E                     LD   A,(HL)   ;LOAD THE CONTENTS AT ADDRESS OF HL					
+8019   D3 30                  OUT   (PORT),A   
+801B                             ; 
+801B   01 10 00               LD   BC,0X10   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+801E   CD 42 80               CALL   DELAY   
+8021                             ;			
+8021   06 6F                  LD   B,0X6F   
+8023   34                     INC   (HL)   
+8024   7E                     LD   A,(HL)   
+8025   B8                     CP   B   
+8026   C2 15 80               JP   NZ,V_UP   
+8029                             ; 
+8029   21 00 80     V_DOWN:   LD   HL,VOLUME   ;LOAD THE ADDRESS OF VOLUME
+802C   7E                     LD   A,(HL)   ;LOAD THE CONTENTS AT ADDRESS OF HL					
+802D   D3 30                  OUT   (PORT),A   
+802F                             ; 
+802F   01 10 00               LD   BC,0X10   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8032   CD 42 80               CALL   DELAY   
+8035                             ;			
+8035   06 40                  LD   B,0X40   
+8037   35                     DEC   (HL)   
+8038   7E                     LD   A,(HL)   
+8039   B8                     CP   B   
+803A   C2 29 80               JP   NZ,V_DOWN   
+803D                             ; 
+803D   3E 00                  LD   A,NOTE_OFF   
+803F   D3 30                  OUT   (PORT),A   
+8041   C9                     RET      
+8042                             ; 
+8042                             ; 
+8042                             ;*** DELAY, APROX 250 MS PER 0X100
+8042                             ;    COUNTS LOADED INTO REGISTER BC BEFORE CALL
+8042                DELAY:       
+8042                OUTER:       
+8042   11 00 02               LD   DE,0X200   
+8045                INNER:       
+8045   1B                     DEC   DE   
+8046   7A                     LD   A,D   
+8047   B3                     OR   E   
+8048   C2 45 80               JP   NZ,INNER   
+804B   0B                     DEC   BC   
+804C   78                     LD   A,B   
+804D   B1                     OR   C   
+804E   C2 42 80               JP   NZ,OUTER   
+8051   C9                     RET      
+8052                             ;			
+
+
+PORT:               0030 DEFINED AT LINE 10
+                    > USED AT LINE 16
+                    > USED AT LINE 22
+                    > USED AT LINE 29
+                    > USED AT LINE 42
+                    > USED AT LINE 54
+NOTE_ON:            0001 DEFINED AT LINE 11
+                    > USED AT LINE 21
+NOTE_OFF:           0000 DEFINED AT LINE 12
+                    > USED AT LINE 53
+VOLUME:             8000 DEFINED AT LINE 13
+                    > USED AT LINE 27
+                    > USED AT LINE 40
+START:              8001 DEFINED AT LINE 15
+V_UP:               8015 DEFINED AT LINE 27
+                    > USED AT LINE 38
+V_DOWN:             8029 DEFINED AT LINE 40
+                    > USED AT LINE 51
+DELAY:              8042 DEFINED AT LINE 60
+                    > USED AT LINE 19
+                    > USED AT LINE 25
+                    > USED AT LINE 32
+                    > USED AT LINE 45
+OUTER:              8042 DEFINED AT LINE 62
+                    > USED AT LINE 72
+INNER:              8045 DEFINED AT LINE 64
+                    > USED AT LINE 68
