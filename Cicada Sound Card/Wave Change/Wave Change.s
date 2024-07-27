@@ -1,108 +1,88 @@
-;			Cicada Sound Card Wave Change
-;			Vernon Billingsley c2024
+;			CICADA SOUND CARD WAVE CHANGE
+;			VERNON BILLINGSLEY C2024
 ; 
-;	A sample program for the Cicada Sound Card designed of the RC2014 Z80 single
-; 	board computer. The sound card should be in the default startup mode, ie MIDI mode,
-;	AR envelope mode, default GAIN..
+;	A SAMPLE PROGRAM FOR THE CICADA SOUND CARD DESIGNED OF THE RC2014 Z80 SINGLE
+; 	BOARD COMPUTER. THE SOUND CARD SHOULD BE IN THE DEFAULT STARTUP MODE, IE MIDI MODE,
+;	AR ENVELOPE MODE, DEFAULT GAIN..
 ; 
-            .ORG    0x8000 
+            .ORG    0X8000 
 ; 
-PORT        EQU     0x30 
-NOTE_ON     EQU     0x01 
-NOTE_OFF    EQU     0x00 	
-TRI			EQU 	0x02
-SAW			EQU		0x03
-SQU			EQU		0x04
+PORT        	EQU     0X30		;Change to match your card 
+NOTE_ON     	EQU     0X01 
+NOTE_OFF   	EQU     0X00 	
+TRI		EQU 	0X02
+SAW		EQU	0X03
+SQU		EQU	0X04
 ; 
 START:
-			LD		a, TRI		;Load Triange wave command
-			OUT		(0x30), a
-;			
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 			
-;			
-			LD      a,0x9b 		;Load the Middle C note to the A register
-            OUT     (0x30),a 	;Send to the bus
-; 
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
-; 
-            LD      a,NOTE_ON 
-            OUT     (0x30),a 
-; 
-            LD      bc,0x200 	;Turn note on for aprox. 1/2 second
-            CALL    delay 
-; 
-            LD      a,NOTE_OFF 
-            OUT     (0x30),a 
+		LD	A, TRI		;LOAD TRIANGE WAVE COMMAND
+		OUT	(PORT), A
+            	LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            	CALL    DELAY 			
+		LD      A,0X9B 		;LOAD THE MIDDLE C NOTE TO THE A REGISTER
+            	OUT     (PORT),A 	;SEND TO THE BUS
+            	LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            	CALL    DELAY 
+            	LD      A,NOTE_ON 
+            	OUT     (PORT),A 
+            	LD      BC,0X200 	;TURN NOTE ON FOR APROX. 1/2 SECOND
+            	CALL    DELAY 
+            	LD      A,NOTE_OFF 
+            	OUT     (PORT),A 
+            	LD      BC,0X100 	;TURN NOTE OFF FOR APROX. 1/4 SECOND
+            	CALL    DELAY 
 ;
-            LD      bc,0x100 	;Turn note off for aprox. 1/4 second
-            CALL    delay 
+		LD	A, SAW		;LOAD SAW WAVE COMMAND
+		OUT	(PORT), A
+	        LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+           	CALL    DELAY 			
+		LD      A,0X9B 		;LOAD THE MIDDLE C NOTE TO THE A REGISTER
+            	OUT     (PORT),A 	;SEND TO THE BUS
+            	LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            	CALL    DELAY 
+            	LD      A,NOTE_ON 
+            	OUT     (PORT),A 
+            	LD      BC,0X200 	;TURN NOTE ON FOR APROX. 1/2 SECOND
+            	CALL    DELAY 
+            	LD      A,NOTE_OFF 
+            	OUT     (PORT),A 			
+            	LD      BC,0X100 	;TURN NOTE OFF FOR APROX. 1/4 SECOND
+            	CALL    DELAY 
 ;
-			LD		a, SAW		;Load Triange wave command
-			OUT		(0x30), a
+		LD	A, SQU		;LOAD SQUARE WAVE COMMAND
+		OUT	(PORT), A
+            	LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            	CALL    DELAY 			
+		LD      A,0X9B 		;LOAD THE MIDDLE C NOTE TO THE A REGISTER
+            	OUT     (PORT),A 	;SEND TO THE BUS
+            	LD      BC,0X01 	;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+            	CALL    DELAY 
+            	LD      A,NOTE_ON 
+            	OUT     (PORT),A 
+            	LD      BC,0X200 	;TURN NOTE ON FOR APROX. 1/2 SECOND
+            	CALL    DELAY 
+            	LD      A,NOTE_OFF 
+            	OUT     (PORT),A 			
 ;			
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 			
-;			
-			LD      a,0x9b 		;Load the Middle C note to the A register
-            OUT     (0x30),a 	;Send to the bus
-; 
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
-; 
-            LD      a,NOTE_ON 
-            OUT     (0x30),a 
-; 
-            LD      bc,0x200 	;Turn note on for aprox. 1/2 second
-            CALL    delay 
-; 
-            LD      a,NOTE_OFF 
-            OUT     (0x30),a 			
-;
-            LD      bc,0x100 	;Turn note off for aprox. 1/4 second
-            CALL    delay 
-;
-			LD		a, SQU		;Load Triange wave command
-			OUT		(0x30), a
-;			
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 			
-;			
-			LD      a,0x9b 		;Load the Middle C note to the A register
-            OUT     (0x30),a 	;Send to the bus
-; 
-            LD      bc,0x01 	;Load a short delay to allow the arduino to read the bus
-            CALL    delay 
-; 
-            LD      a,NOTE_ON 
-            OUT     (0x30),a 
-; 
-            LD      bc,0x200 	;Turn note on for aprox. 1/2 second
-            CALL    delay 
-; 
-            LD      a,NOTE_OFF 
-            OUT     (0x30),a 			
-;			
-            RET      
+            	RET      
 ; 
 ; 
 ; 
-;*** Delay, aprox 250 mS per 0x100
-;    Counts loaded into register BC before call 
+;*** DELAY, APROX 250 MS PER 0X100
+;    COUNTS LOADED INTO REGISTER BC BEFORE CALL 
 DELAY:               
 
 OUTER:               
-            LD      de,0x200 
+            LD      DE,0X200 
 INNER:               
-            DEC     de 
-            LD      a,d 
-            OR      e 
-            JP      nz,inner 
-            DEC     bc 
-            LD      a,b 
-            OR      c 
-            JP      nz,outer 
+            DEC     DE 
+            LD      A,D 
+            OR      E 
+            JP      NZ,INNER 
+            DEC     BC 
+            LD      A,B 
+            OR      C 
+            JP      NZ,OUTER 
             RET      
 ; 
-		
+			
