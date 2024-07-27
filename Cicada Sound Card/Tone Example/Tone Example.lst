@@ -1,0 +1,126 @@
+0000                             ;			CICADA SOUND CARD TONE EXAMPLE
+0000                             ;			VERNON BILLINGSLEY C2024
+0000                             ; 
+0000                             ;	A SAMPLE PROGRAM FOR THE CICADA SOUND CARD DESIGNED OF THE RC2014 Z80 SINGLE
+0000                             ; 	BOARD COMPUTER. THE SOUND CARD SHOULD BE IN THE DEFAULT STARTUP MODE, IE MIDI MODE,
+0000                             ;	AR ENVELOPE MODE, DEFAULT GAIN..
+0000                             ; 
+8000                          .ORG   0X8000   
+8000                             ; 
+8000                PORT:     EQU   0X30   
+8000                NOTE_ON:   EQU   0X01   
+8000                NOTE_OFF:   EQU   0X00   
+8000                             ; 
+8000                             ;		CHOOSE A NOTE FREQ TO START WITH..
+8000                             ; 		GO WITH A4, 0XA4
+8000   21 7A 80     START:    LD   HL,WOBBLE   ;ENSURE THE COUNTERS ARE RESET ON STARTUP
+8003   36 3F                  LD   (HL),0X3F   
+8005   21 7B 80               LD   HL,COUNT   
+8008   36 00                  LD   (HL),0X00   
+800A                             ; 
+800A   3E A4                  LD   A,0XA4   ;LOAD THE A4 NOTE, 440 HZ, TO THE A REGISTER
+800C   D3 30                  OUT   (0X30),A   ;SEND TO THE BUS
+800E                             ; 
+800E   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8011   CD 68 80               CALL   DELAY   
+8014                             ; 
+8014   3E 01                  LD   A,NOTE_ON   
+8016   D3 30                  OUT   (0X30),A   
+8018                             ; 
+8018   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+801B   CD 68 80               CALL   DELAY   
+801E                             ; 
+801E   3E 10                  LD   A,0X10   ;LOAD THE TONE COMMAND
+8020   D3 30                  OUT   (0X30),A   
+8022                             ; 
+8022   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8025   CD 68 80               CALL   DELAY   
+8028                             ; 
+8028   21 7A 80     FREQ_UP:   LD   HL,WOBBLE   
+802B   3A 78 80               LD   A,(TONE_UP)   ;ADD 10 TO THE ACCUMULATOR
+802E   D3 30                  OUT   (0X30),A   
+8030   01 02 00               LD   BC,0X02   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8033   CD 68 80               CALL   DELAY   
+8036   34                     INC   (HL)   
+8037   7E                     LD   A,(HL)   
+8038   FE 5E                  CP   0X5E   ;COUNT TO 94
+803A   C2 28 80               JP   NZ,FREQ_UP   
+803D   3A 79 80     FREQ_DN:   LD   A,(TONE_DN)   ;SUBTRACT 10 TO THE ACCUMULATOR
+8040   D3 30                  OUT   (0X30),A   
+8042   01 02 00               LD   BC,0X02   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8045   CD 68 80               CALL   DELAY   
+8048   35                     DEC   (HL)   
+8049   7E                     LD   A,(HL)   
+804A   FE 1F                  CP   0X1F   ;COUNT DOWN TO 31
+804C   C2 3D 80               JP   NZ,FREQ_DN   
+804F                             ; 
+804F   21 7B 80               LD   HL,COUNT   
+8052   34                     INC   (HL)   
+8053   7E                     LD   A,(HL)   
+8054   FE 0A                  CP   0X0A   
+8056   C2 28 80               JP   NZ,FREQ_UP   
+8059                             ;			
+8059   3E 00                  LD   A,NOTE_OFF   
+805B   D3 30                  OUT   (0X30),A   
+805D   01 01 00               LD   BC,0X01   ;LOAD A SHORT DELAY TO ALLOW THE ARDUINO TO READ THE BUS
+8060   CD 68 80               CALL   DELAY   
+8063   3E 0F                  LD   A,0X0F   ;RESET CARD TO MIDI
+8065   D3 30                  OUT   (0X30),A   
+8067   C9                     RET      
+8068                             ; 
+8068                             ; 
+8068                             ;*** DELAY, APROX 250 MS PER 0X100
+8068                             ;    COUNTS LOADED INTO REGISTER BC BEFORE CALL
+8068                DELAY:       
+8068                OUTER:       
+8068   11 00 02               LD   DE,0X200   
+806B                INNER:       
+806B   1B                     DEC   DE   
+806C   7A                     LD   A,D   
+806D   B3                     OR   E   
+806E   C2 6B 80               JP   NZ,INNER   
+8071   0B                     DEC   BC   
+8072   78                     LD   A,B   
+8073   B1                     OR   C   
+8074   C2 68 80               JP   NZ,OUTER   
+8077   C9                     RET      
+8078                             ;	
+8078   CA           TONE_UP:   DB   0XCA   ;ADD 10
+8079   EA           TONE_DN:   DB   0XEA   ;SUBTRACT 10	
+807A   3F           WOBBLE:   DB   0X3F   
+807B   00           COUNT:    DB   0X00   
+807C                             ; 
+
+
+PORT:               0030 DEFINED AT LINE 10
+NOTE_ON:            0001 DEFINED AT LINE 11
+                    > USED AT LINE 27
+NOTE_OFF:           0000 DEFINED AT LINE 12
+                    > USED AT LINE 63
+START:              8000 DEFINED AT LINE 16
+FREQ_UP:            8028 DEFINED AT LINE 39
+                    > USED AT LINE 47
+                    > USED AT LINE 61
+FREQ_DN:            803D DEFINED AT LINE 48
+                    > USED AT LINE 55
+DELAY:              8068 DEFINED AT LINE 74
+                    > USED AT LINE 25
+                    > USED AT LINE 31
+                    > USED AT LINE 37
+                    > USED AT LINE 43
+                    > USED AT LINE 51
+                    > USED AT LINE 66
+OUTER:              8068 DEFINED AT LINE 76
+                    > USED AT LINE 86
+INNER:              806B DEFINED AT LINE 78
+                    > USED AT LINE 82
+TONE_UP:            8078 DEFINED AT LINE 89
+                    > USED AT LINE 40
+TONE_DN:            8079 DEFINED AT LINE 90
+                    > USED AT LINE 48
+WOBBLE:             807A DEFINED AT LINE 91
+                    > USED AT LINE 16
+                    > USED AT LINE 39
+COUNT:              807B DEFINED AT LINE 92
+                    > USED AT LINE 18
+                    > USED AT LINE 57
