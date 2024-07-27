@@ -1,0 +1,97 @@
+0000                             ;			Cicada Sound Card Volume
+0000                             ;			Vernon Billingsley c2024
+0000                             ; 
+0000                             ;	A sample program for the Cicada Sound Card designed of the RC2014 Z80 single
+0000                             ; 	board computer. The sound card should be in the default startup mode, ie MIDI mode,
+0000                             ;	AR envelope mode, default GAIN..
+0000                             ; 
+8000                          .ORG   0x8000   
+8000                             ; 
+8000                PORT:     EQU   0x30   
+8000                NOTE_ON:   EQU   0x01   
+8000                NOTE_OFF:   EQU   0x00   
+8000   40           VOLUME:   DB   0x40   
+8001                             ; 
+8001   3E 9B        START:    LD   a,0x9b   ;Load the Middle C note to the A register
+8003   D3 30                  OUT   (0x30),a   ;Send to the bus
+8005                             ; 
+8005   01 01 00               LD   bc,0x01   ;Load a short delay to allow the arduino to read the bus
+8008   CD 42 80               CALL   delay   
+800B                             ; 
+800B   3E 01                  LD   a,NOTE_ON   
+800D   D3 30                  OUT   (0x30),a   
+800F                             ; 
+800F   01 01 00               LD   bc,0x01   ;Load a short delay to allow the arduino to read the bus
+8012   CD 42 80               CALL   delay   
+8015                             ; 
+8015   21 00 80     V_UP:     LD   hl,VOLUME   ;Load the address of volume
+8018   7E                     LD   a,(hl)   ;Load the contents at address of hl					
+8019   D3 30                  OUT   (0x30),a   
+801B                             ; 
+801B   01 10 00               LD   bc,0x10   ;Load a short delay to allow the arduino to read the bus
+801E   CD 42 80               CALL   delay   
+8021                             ;			
+8021   06 5F                  LD   b,0x5f   
+8023   34                     INC   (hl)   
+8024   7E                     LD   a,(hl)   
+8025   B8                     CP   b   
+8026   C2 15 80               JP   nz,v_up   
+8029                             ; 
+8029   21 00 80     V_DOWN:   LD   hl,VOLUME   ;Load the address of volume
+802C   7E                     LD   a,(hl)   ;Load the contents at address of hl					
+802D   D3 30                  OUT   (0x30),a   
+802F                             ; 
+802F   01 10 00               LD   bc,0x10   ;Load a short delay to allow the arduino to read the bus
+8032   CD 42 80               CALL   delay   
+8035                             ;			
+8035   06 40                  LD   b,0x40   
+8037   35                     DEC   (hl)   
+8038   7E                     LD   a,(hl)   
+8039   B8                     CP   b   
+803A   C2 29 80               JP   nz,v_down   
+803D                             ; 
+803D   3E 00                  LD   a,NOTE_OFF   
+803F   D3 30                  OUT   (0x30),a   
+8041   C9                     RET      
+8042                             ; 
+8042                             ; 
+8042                             ;*** Delay, aprox 250 mS per 0x100
+8042                             ;    Counts loaded into register BC before call
+8042                DELAY:       
+8042                OUTER:       
+8042   11 00 02               LD   de,0x200   
+8045                INNER:       
+8045   1B                     DEC   de   
+8046   7A                     LD   a,d   
+8047   B3                     OR   e   
+8048   C2 45 80               JP   nz,inner   
+804B   0B                     DEC   bc   
+804C   78                     LD   a,b   
+804D   B1                     OR   c   
+804E   C2 42 80               JP   nz,outer   
+8051   C9                     RET      
+8052                             ;			
+
+
+PORT:               0030 DEFINED AT LINE 10
+NOTE_ON:            0001 DEFINED AT LINE 11
+                    > USED AT LINE 21
+NOTE_OFF:           0000 DEFINED AT LINE 12
+                    > USED AT LINE 53
+VOLUME:             8000 DEFINED AT LINE 13
+                    > USED AT LINE 27
+                    > USED AT LINE 40
+START:              8001 DEFINED AT LINE 15
+V_UP:               8015 DEFINED AT LINE 27
+                    > USED AT LINE 38
+V_DOWN:             8029 DEFINED AT LINE 40
+                    > USED AT LINE 51
+DELAY:              8042 DEFINED AT LINE 60
+                    > USED AT LINE 19
+                    > USED AT LINE 25
+                    > USED AT LINE 32
+                    > USED AT LINE 45
+OUTER:              8042 DEFINED AT LINE 62
+                    > USED AT LINE 72
+INNER:              8045 DEFINED AT LINE 64
+                    > USED AT LINE 68
