@@ -12,7 +12,7 @@ BEGIN:			;HOUSEKEEPING
 				
 				RET
 				
-DRAW:			PUSH	HL
+DRAW:				PUSH	HL
 				PUSH	DE
 				PUSH	BC
 				LD		HL, BUFFER
@@ -24,7 +24,7 @@ DRAW:			PUSH	HL
 				POP		HL
 				RET
 ;
-RESET_SCREEN:	PUSH	HL
+RESET_SCREEN:			PUSH	HL
 				PUSH	DE
 				PUSH	BC
 				LD		HL, SCREEN		;Load the video buffer address
