@@ -8,3 +8,7 @@ There is no feedback from the video card to the processor, so a short delay shou
 between the reprograming pixel bytes..
   There are 8 nops at the end of the main program..If the screen has to much jitter, try adding 
 or subtracting a nop. I think this has to do with the way the AVR loops the main and the clock speed..
+
+  There is a jumper added to the back of the pcb from the rest pin to the DBG3 pin of the AVR if
+you want the video card toreset with the Z80. I found out about the reset after I had ordered the boards
+and only after studying the schematics..
