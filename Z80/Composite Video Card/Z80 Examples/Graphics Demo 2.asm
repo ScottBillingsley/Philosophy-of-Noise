@@ -10,7 +10,7 @@ BEGIN:			;HOUSEKEEPING
 				LD		HL, M_ADDRESS
 				LD		DE, TEXT
 				LD		BC, BYTE_COUNT
-NXT:			LD		A, (DE)
+NXT:				LD		A, (DE)
 				LD		(HL), A
 				INC		HL
 				INC 	DE
@@ -20,12 +20,12 @@ NXT:			LD		A, (DE)
 				JP		NZ, NXT
 				RET
 
-CLR_SCREEN:		PUSH	HL
+CLR_SCREEN:			PUSH	HL
 				PUSH	DE
 				PUSH	BC
 				LD		HL, M_ADDRESS	;Load the video address
 				LD		DE, BYTE_COUNT	;Load the byte count
-NEXT:			LD 		A, 0x00			;Load 0 into all memory locations
+NEXT:				LD 		A, 0x00			;Load 0 into all memory locations
 				LD 		(HL), A
 				INC		HL
 				DEC 	DE
