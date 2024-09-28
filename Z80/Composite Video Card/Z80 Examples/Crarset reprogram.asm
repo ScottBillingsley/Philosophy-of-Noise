@@ -5,14 +5,14 @@
 M_ADDRESS 	EQU	0X3C00			;Base address of the video memory
 C_ADDRESS	EQU 0X3F2			;The byte addres to reprogram the charset
 								;The next 8 bytes are the bytes to reprogram 
-BEGIN:		LD	HL, M_ADDRESS	;Data address of new charset
+BEGIN:			LD	HL, M_ADDRESS	;Data address of new charset
 			LD	DE, C_ADDRESS
 			ADD HL, DE
 			INC HL				;Start at base address plus 1
 				
 			LD	DE, TEXT		;Bytes to write
 			LD	BC, 0X08		;Number of bytes to write
-NEXT:		LD	A, (DE)		
+NEXT:			LD	A, (DE)		
 			LD	(HL), A
 			INC HL
 			INC DE
