@@ -26,7 +26,7 @@ NEXT:			LD A, (DE)
 ;			
 ;WORD_COUNT:	DW	0X03E8
 ;			
-TEXT:		DB	'                                        '
+TEXT:			DB	'                                        '
 			DB	' This is a test array sent from the Z80 '
 			DB	'to the display to show the speed of     '
 			DB  'direct memory writes.                   '
