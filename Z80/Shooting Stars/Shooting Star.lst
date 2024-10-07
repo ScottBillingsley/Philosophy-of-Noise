@@ -1,0 +1,674 @@
+8000                          .ORG   0X8000   
+8000                             ;	
+8000                             ;	A porting of Willard Nico version of
+8000                             ;   People"s Computer Company"s mainframe game Shooting Stars
+8000                             ;	Byte Magazine May, 1976 p. 42
+8000                             ;	Restart calls are for Stephen Cousins Small Computer Monitor on
+8000                             ;	the RC2014 retro Z80 computer
+8000                             ;	Vernon Billingsley	c2024
+8000                             ;	https://github.com/ScottBillingsley/Philosophy-of-Noise
+8000                             ; 
+8000   CD 73 82     BEGIN:    CALL   LINEFEED   ;Start off by doing a line feed
+8003   21 A0 82               LD   HL,MESS0   ;Address of message to display
+8006   CD 62 82               CALL   TXT_DISPLAY   ;Display the start screen
+8009   CD 6C 82               CALL   IN_CHAR   ;Get a charactor from the input device
+800C   FE 6E                  CP   "n"   
+800E   CA 42 80               JP   Z,GAME_STR   ;If no instructions are wanted, start game
+8011   FE 4E                  CP   "N"   
+8013   CA 42 80               JP   Z,GAME_STR   
+8016   FE 1B                  CP   0X1B   ;Check for escape to exit the game
+8018   CA 12 81               JP   Z,GIVE_UP   
+801B   CD 73 82               CALL   LINEFEED   ;Otherwise, display the rules
+801E   21 75 86               LD   HL,PAGE1   
+8021   CD 62 82               CALL   TXT_DISPLAY   
+8024   CD 6C 82               CALL   IN_CHAR   ;Wait for a key press
+8027   CD 73 82               CALL   LINEFEED   
+802A   21 F2 87               LD   HL,PAGE2   
+802D   CD 62 82               CALL   TXT_DISPLAY   
+8030   CD 6C 82               CALL   IN_CHAR   
+8033   CD 73 82               CALL   LINEFEED   
+8036   21 EC 89               LD   HL,PAGE3   
+8039   CD 62 82               CALL   TXT_DISPLAY   
+803C   CD 6C 82               CALL   IN_CHAR   
+803F   CD 73 82               CALL   LINEFEED   
+8042   CD 73 82     GAME_STR:   CALL   LINEFEED   
+8045   CD 73 82               CALL   LINEFEED   
+8048   21 79 82               LD   HL,UNIVERSE   ;Setup the start universe
+804B   36 00                  LD   (HL),0X00   
+804D   23                     INC   HL   
+804E   36 01                  LD   (HL),0X01   
+8050   CD 32 81               CALL   RST_SHOT   ;Clear the score on restart
+8053   CD 87 81     RE_ENTER:   CALL   DISP_UNIV   ;Display the universe
+8056                             ;	************	WIN OR LOSE		***********************			
+8056   CD E2 81               CALL   WIN_TEST   ;Check for win or lose
+8059   FE 00                  CP   0X00   
+805B   CA B9 80               JP   Z,SKIP7   ;If nither win or lose, skip to continue
+805E   FE 0F                  CP   0X0F   ;Check for lose
+8060   CA 88 80               JP   Z,U_LOST   
+8063                             ;			Returning here, we have a winner
+8063   CD 73 82               CALL   LINEFEED   
+8066   CD 73 82               CALL   LINEFEED   
+8069   21 5B 85               LD   HL,MESS4   
+806C   CD 62 82               CALL   TXT_DISPLAY   ;Display the first part of the win message
+806F   CD 05 82               CALL   DPLY_SCORE   ;Display the number of shots
+8072   21 83 85               LD   HL,MESS5   
+8075   CD 62 82               CALL   TXT_DISPLAY   ;Display the second part
+8078   CD 6C 82               CALL   IN_CHAR   ;Wait for a key input
+807B   FE 59                  CP   "Y"   
+807D   CA 00 80               JP   Z,BEGIN   
+8080   FE 79                  CP   "y"   
+8082   CA 00 80               JP   Z,BEGIN   
+8085   C3 12 81               JP   GIVE_UP   
+8088                             ;	************	LOST			**********************
+8088   CD 73 82     U_LOST:   CALL   LINEFEED   
+808B   CD 73 82               CALL   LINEFEED   
+808E   21 1F 85               LD   HL,MESS3   ;Load the lost message
+8091   CD 62 82               CALL   TXT_DISPLAY   
+8094   CD 6C 82               CALL   IN_CHAR   ;Wait for a key input
+8097   FE 59                  CP   "Y"   
+8099   CA 42 80               JP   Z,GAME_STR   
+809C   FE 79                  CP   "y"   
+809E   CA 42 80               JP   Z,GAME_STR   ;If yes, restart the game
+80A1   CD 73 82               CALL   LINEFEED   
+80A4   CD 73 82               CALL   LINEFEED   
+80A7   21 5F 86               LD   HL,MESS9   
+80AA   CD 62 82               CALL   TXT_DISPLAY   
+80AD   CD 05 82               CALL   DPLY_SCORE   
+80B0   21 6B 86               LD   HL,MESS10   
+80B3   CD 62 82               CALL   TXT_DISPLAY   
+80B6   C3 12 81               JP   GIVE_UP   ;Otherwise jump to exit
+80B9                             ;	************	GAME PLAY		************************			
+80B9   CD 73 82     SKIP7:    CALL   LINEFEED   
+80BC   CD 73 82               CALL   LINEFEED   
+80BF   21 1A 86               LD   HL,MESS7   ;Ask for a target
+80C2   CD 62 82               CALL   TXT_DISPLAY   
+80C5   CD 6C 82               CALL   IN_CHAR   ;Wait for charactor input in A
+80C8   CD 39 81               CALL   TEST_SHOT   ;Test for a valid key
+80CB   FE 1B                  CP   0X1B   ;Check for escape key
+80CD   C2 E0 80               JP   NZ,SKIP6   
+80D0   CD 1E 81               CALL   R_U_SURE   
+80D3   FE 4E                  CP   "N"   ;Check for exit
+80D5   CA 12 81               JP   Z,GIVE_UP   
+80D8   FE 6E                  CP   "n"   
+80DA   CA 12 81               JP   Z,GIVE_UP   
+80DD   C3 00 80               JP   BEGIN   ;Otherwise, start over
+80E0   FE 00        SKIP6:    CP   0X00   ;Check for no match
+80E2   C2 F1 80               JP   NZ,SKIP4   
+80E5   21 EB 84               LD   HL,MESS2   
+80E8   CD 62 82               CALL   TXT_DISPLAY   ;Tell it was not a vlaid key
+80EB   CD 73 82               CALL   LINEFEED   
+80EE   C3 53 80               JP   RE_ENTER   ;Try again
+80F1                             ;Upon returning here, there is a valid number in A 
+80F1                             ;and the mask address in HL
+80F1   CD 59 81     SKIP4:    CALL   TEST_STAR   ;Test for a valid star
+80F4   FE 00                  CP   0X00   ;Check for black hole
+80F6   C2 05 81               JP   NZ,SKIP5   
+80F9   21 97 84               LD   HL,MESS1   ;Not a star, complain
+80FC   CD 62 82               CALL   TXT_DISPLAY   
+80FF   CD 73 82               CALL   LINEFEED   
+8102   C3 53 80               JP   RE_ENTER   ;Jump back to try again
+8105                             ;Upon returning here, there is vald star and the mask address is in HL
+8105   CD 76 81     SKIP5:    CALL   CHANGE_UNI   ;Up data the universe
+8108   CD 2B 81               CALL   ADD_SHOT   ;Update the score
+810B   C3 53 80               JP   RE_ENTER   
+810E                             ; 
+810E                             ; 
+810E   CD 73 82     EXIT:     CALL   LINEFEED   
+8111   C9                     RET      ;Exit
+8112                             ; 
+8112                             ;			Give up the game
+8112   CD 73 82     GIVE_UP:   CALL   LINEFEED   
+8115   21 29 86               LD   HL,MESS8   
+8118   CD 62 82               CALL   TXT_DISPLAY   
+811B   C3 0E 81               JP   EXIT   
+811E                             ; 
+811E                             ;			Are you sure you want to give up?
+811E   CD 73 82     R_U_SURE:   CALL   LINEFEED   
+8121   21 D9 85               LD   HL,MESS6   
+8124   CD 62 82               CALL   TXT_DISPLAY   
+8127   CD 6C 82               CALL   IN_CHAR   
+812A   C9                     RET      
+812B                             ; 
+812B                             ;			Update the score
+812B   21 7B 82     ADD_SHOT:   LD   HL,SCORE   
+812E   7E                     LD   A,(HL)   
+812F   3C                     INC   A   
+8130   77                     LD   (HL),A   
+8131   C9                     RET      
+8132                             ; 
+8132                             ;			Reset the score to zero
+8132   21 7B 82     RST_SHOT:   LD   HL,SCORE   
+8135   3E 00                  LD   A,0X00   
+8137   77                     LD   (HL),A   
+8138   C9                     RET      
+8139                             ;			
+8139                             ;			Test the input key in A for a valid key, return match in A, and table address in HL
+8139                             ;			or Zero in A if no match
+8139   FE 1B        TEST_SHOT:   CP   0X1B   ;Check for the escape key
+813B   CA 58 81               JP   Z,MATCH   
+813E   CD 4B 82               CALL   PRINT_CHAR   ;Echo the input back to the screen
+8141   21 7C 82               LD   HL,MASKTAB   ;Load the address for the mask table
+8144   06 0A                  LD   B,0X0A   ;Loop 9 times
+8146   05           NXT_TEST:   DEC   B   
+8147   CA 56 81               JP   Z,NO_KEY   ;If the key is not found in the table complain
+814A   56                     LD   D,(HL)   ;Get the key data from the first column of the table
+814B   BA                     CP   D   ;Compare key in A to D
+814C   CA 58 81               JP   Z,MATCH   
+814F   23                     INC   HL   
+8150   23                     INC   HL   
+8151   23                     INC   HL   
+8152   23                     INC   HL   ;Incerment 4 to the next key column
+8153   C3 46 81               JP   NXT_TEST   
+8156   3E 00        NO_KEY:   LD   A,0X00   
+8158   C9           MATCH:    RET      
+8159                             ; 
+8159                             ;			Test for a valid star, number in A, mask address in HL
+8159                             ;			Return zero in A if not star, otherwise HL holds mask address
+8159   11 79 82     TEST_STAR:   LD   DE,UNIVERSE   ;Load the address of the universe
+815C   1A                     LD   A,(DE)   ;Load universe to A
+815D   4F                     LD   C,A   ;Load A to C
+815E   23                     INC   HL   ;Points to positon mask
+815F   7E                     LD   A,(HL)   ;Load the mask in A
+8160   FE 00                  CP   0X00   
+8162   C2 6A 81               JP   NZ,NOT_FIVE   
+8165   13                     INC   DE   
+8166   1A                     LD   A,(DE)   ;DE plus one holds number 5 data
+8167   C3 75 81               JP   IS_STAR   ;Return data, either 0 or 1
+816A   A1           NOT_FIVE:   AND   C   ;And A with C, if not zero it's a star other wise a black hole
+816B   FE 00                  CP   0X00   
+816D   CA 73 81               JP   Z,NOT_STAR   
+8170   C3 75 81               JP   IS_STAR   ;A will be greater than 0 if a star
+8173   3E 00        NOT_STAR:   LD   A,0X00   ;A will be zero if not a star
+8175   C9           IS_STAR:   RET      
+8176                             ; 
+8176                             ;			Up data the universe by XORing with the mask
+8176   23           CHANGE_UNI:   INC   HL   ;Point to the xor mask
+8177   7E                     LD   A,(HL)   ;Get the mask
+8178   4F                     LD   C,A   ;Store in C
+8179   11 79 82               LD   DE,UNIVERSE   ;Load the universe
+817C   1A                     LD   A,(DE)   
+817D   A9                     XOR   C   ;XOR with C
+817E   12                     LD   (DE),A   ;Store the universe
+817F   23                     INC   HL   ;Point to bit 5 mask
+8180   7E                     LD   A,(HL)   
+8181   4F                     LD   C,A   ;Store it in C
+8182   13                     INC   DE   ;Point to bit 5
+8183   1A                     LD   A,(DE)   
+8184   A9                     XOR   C   ;XOR the bit
+8185   12                     LD   (DE),A   ;Store the bit
+8186   C9                     RET      
+8187                             ; 
+8187                             ;			Display the universe to the screen
+8187   D5           DISP_UNIV:   PUSH   DE   
+8188   C5                     PUSH   BC   
+8189   CD 73 82               CALL   LINEFEED   
+818C   CD 73 82               CALL   LINEFEED   ;Skip a line to start
+818F   CD 53 82               CALL   PRINT_TAB   
+8192   B7                     OR   A   ;Clear A register and flags
+8193   21 79 82               LD   HL,UNIVERSE   
+8196   56                     LD   D,(HL)   ;Load the universe into D
+8197   23                     INC   HL   
+8198   5E                     LD   E,(HL)   ;Load number 5 into E
+8199   06 0A                  LD   B,0X0A   ;Loop count of 10
+819B   05           DISP_LOOP:   DEC   B   
+819C   CA DF 81               JP   Z,RETURN1   ;If we reach zero, return 
+819F   78                     LD   A,B   ;Load the count into A
+81A0   FE 03                  CP   0X03   ;If 3, add line feed and tab
+81A2   C2 AB 81               JP   NZ,SKIP0   
+81A5   CD 73 82               CALL   LINEFEED   
+81A8   CD 53 82               CALL   PRINT_TAB   
+81AB   FE 06        SKIP0:    CP   0X06   ;If 6 add line feed and tab
+81AD   C2 B6 81               JP   NZ,SKIP1   
+81B0   CD 73 82               CALL   LINEFEED   
+81B3   CD 53 82               CALL   PRINT_TAB   
+81B6   FE 05        SKIP1:    CP   0X05   ;5 is special
+81B8   C2 C2 81               JP   NZ,SKIP2   
+81BB   B7                     OR   A   ;Clear A and the flags
+81BC   7B                     LD   A,E   ;Place number 5 into A
+81BD   CB 0F                  RRC   A   ;Place into Carry 
+81BF   C3 C7 81               JP   SKIP3   
+81C2   B7           SKIP2:    OR   A   
+81C3   7A                     LD   A,D   ;Load universe into A
+81C4   CB 0F                  RRC   A   ;Place the bit into the carry flag
+81C6   57                     LD   D,A   ;Store universe back into d
+81C7   DA D2 81     SKIP3:    JP   C,STAR   ;If the carry is set goto print a star
+81CA   3E 2D                  LD   A,"-"   ;Otherwise print a black hole
+81CC   CD 4B 82               CALL   PRINT_CHAR   
+81CF   C3 D7 81               JP   SPACE   
+81D2   3E 2A        STAR:     LD   A,"*"   ;Print a star
+81D4   CD 4B 82               CALL   PRINT_CHAR   
+81D7   3E 20        SPACE:    LD   A," "   ;Space it out a little to make it look nicer
+81D9   CD 4B 82               CALL   PRINT_CHAR   
+81DC   C3 9B 81               JP   DISP_LOOP   ;Go back for the next count
+81DF   C1           RETURN1:   POP   BC   
+81E0   D1                     POP   DE   
+81E1   C9                     RET      
+81E2                             ; 
+81E2                             ;			Test for a win or lose, return in A
+81E2                             ;			0 for nither, 0x0f for lost, 0xff for win
+81E2   21 79 82     WIN_TEST:   LD   HL,UNIVERSE   
+81E5   23                     INC   HL   
+81E6   7E                     LD   A,(HL)   ;Check position 5
+81E7   FE 00                  CP   0X00   ;Check for zero
+81E9   C2 F8 81               JP   NZ,NITHER   ;If position 5 is not zero it's nither a win or lose
+81EC   2B                     DEC   HL   
+81ED   7E                     LD   A,(HL)   ;Load byte 1 into A
+81EE   FE FF                  CP   0XFF   ;All edge posions stars?
+81F0   CA 02 82               JP   Z,WINNER   
+81F3   FE 00                  CP   0X00   ;All black holes
+81F5   CA FD 81               JP   Z,LOOSER   ;The game is lost
+81F8   3E 00        NITHER:   LD   A,0X00   
+81FA   C3 04 82               JP   WIN_RTN   
+81FD   3E 0F        LOOSER:   LD   A,0X0F   
+81FF   C3 04 82               JP   WIN_RTN   
+8202   3E FF        WINNER:   LD   A,0XFF   
+8204   C9           WIN_RTN:   RET      
+8205                             ; 
+8205                             ;			Display the score to the screen
+8205   D5           DPLY_SCORE:   PUSH   DE   
+8206   C5                     PUSH   BC   
+8207   06 30                  LD   B,0X30   ;Load the count registers, ones
+8209   0E 30                  LD   C,0X30   ;Tens
+820B   16 30                  LD   D,0X30   ;Hundreds
+820D   1E 00                  LD   E,0X00   ;Clear the count register		
+820F   21 7B 82               LD   HL,SCORE   ;The address of the score 
+8212   7E           TEST_IT:   LD   A,(HL)   ;Load the score to A
+8213   BB                     CP   E   
+8214   CA 2E 82               JP   Z,SHOW_IT   ;If count equals score, display
+8217   1C                     INC   E   
+8218   04                     INC   B   ;Add to the ones
+8219   78                     LD   A,B   ;PLace B into A
+821A   FE 3A                  CP   0X3A   ;Compare 9 + 1, overflow
+821C   C2 12 82               JP   NZ,TEST_IT   
+821F   0C                     INC   C   ;Add one to the tens place
+8220   06 30                  LD   B,0X30   ;Reset the ones
+8222   79                     LD   A,C   
+8223   FE 3A                  CP   0X3A   ;Compare 9 + 1, overflow
+8225   C2 12 82               JP   NZ,TEST_IT   
+8228   14                     INC   D   ;Add one to the hundreds
+8229   0E 30                  LD   C,0X30   ;Reset the tens
+822B   C3 12 82               JP   TEST_IT   
+822E   7A           SHOW_IT:   LD   A,D   
+822F   FE 30                  CP   0X30   ;Check for zero
+8231   CA 3B 82               JP   Z,NO_HUND   ;If the hundreds is zero, skip display
+8234   CD 4B 82               CALL   PRINT_CHAR   
+8237   79                     LD   A,C   ;If there a hundreds, there are tens
+8238   C3 41 82               JP   HUNDREDS   ;Skip checking tens for zero
+823B   79           NO_HUND:   LD   A,C   
+823C   FE 30                  CP   0X30   ;Check the tens for zero, if hundreds is zero
+823E   CA 44 82               JP   Z,NO_TENS   
+8241   CD 4B 82     HUNDREDS:   CALL   PRINT_CHAR   
+8244   78           NO_TENS:   LD   A,B   
+8245   CD 4B 82               CALL   PRINT_CHAR   ;Display the ones
+8248   C1                     POP   BC   
+8249   D1                     POP   DE   
+824A   C9                     RET      
+824B                             ; 
+824B                             ;           Print a charactor in A to the screen
+824B   D5           PRINT_CHAR:   PUSH   DE   
+824C   C5                     PUSH   BC   
+824D   0E 02                  LD   C,0X02   
+824F   F7                     RST   0X30   
+8250   C1                     POP   BC   
+8251   D1                     POP   DE   
+8252   C9                     RET      
+8253                             ; 
+8253                             ;			Print a tab to the screen
+8253   D5           PRINT_TAB:   PUSH   DE   
+8254   C5                     PUSH   BC   
+8255   F5                     PUSH   AF   
+8256   3E 20                  LD   A," "   
+8258   0E 02                  LD   C,0X02   
+825A   F7                     RST   0X30   
+825B   F7                     RST   0X30   
+825C   F7                     RST   0X30   
+825D   F7                     RST   0X30   
+825E   F1                     POP   AF   
+825F   C1                     POP   BC   
+8260   D1                     POP   DE   
+8261   C9                     RET      
+8262                             ; 
+8262                             ;			Print a text message to the screen
+8262   D5           TXT_DISPLAY:   PUSH   DE   
+8263   C5                     PUSH   BC   
+8264   54 5D                  LD   DE,HL   ;Put the address in the DE register
+8266   0E 06                  LD   C,0X06   ;Function to display a line
+8268   F7                     RST   0X30   
+8269   C1                     POP   BC   
+826A   D1                     POP   DE   
+826B   C9                     RET      
+826C                             ; 
+826C                             ;			Return an input charactor in A
+826C   C5           IN_CHAR:   PUSH   BC   
+826D   B7                     OR   A   
+826E   0E 01                  LD   C,0X01   ;Input charactor function
+8270   F7                     RST   0X30   ;Call the input function and wait for charactor
+8271   C1                     POP   BC   
+8272   C9                     RET      
+8273                             ; 
+8273                             ;			Print a line feed to the screen
+8273   C5           LINEFEED:   PUSH   BC   
+8274   0E 07                  LD   C,0X07   
+8276   F7                     RST   0X30   
+8277   C1                     POP   BC   
+8278   C9                     RET      
+8279                             ;			
+8279                             ;			Hold the universe.
+8279                             ;			Byte one holds positions 1 to 4 and 6 to 9
+8279                             ;			Byte two holds position 5
+8279   00 00        UNIVERSE:   DB   0X00,0X00   
+827B                             ;			Keep score
+827B   00           SCORE:    DB   0X00   
+827C                             ;			The mask table
+827C                             ;			Byte one is the key number
+827C                             ;			Byte two is the position in the universe byte
+827C                             ;			Byte three is the XOR byte for the universe byte
+827C                             ;			Byte four is the XOR byte for position 5
+827C   31 01 0B 01  MASKTAB:   DB   0X31,0X01,0X0B,0X01   
+8280   32 02 07 00            DB   0X32,0X02,0X07,0X00   
+8284   33 04 16 01            DB   0X33,0X04,0X16,0X01   
+8288   34 08 29 00            DB   0X34,0X08,0X29,0X00   
+828C   35 00 5A 01            DB   0X35,0X00,0X5A,0X01   
+8290   36 10 94 00            DB   0X36,0X10,0X94,0X00   
+8294   37 20 68 01            DB   0X37,0X20,0X68,0X01   
+8298   38 40 E0 00            DB   0X38,0X40,0XE0,0X00   
+829C   39 80 D0 01            DB   0X39,0X80,0XD0,0X01   
+82A0                             ; 
+82A0                             ;			Start screen message
+82A0   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 05 MESS0:   DB   "                                                  ",5   
+82D3   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 05 DB   "                                                  ",5   
+8306   20 20 53 20 48 20 4F 20 20 20 20 53 53 53 20 20 20 20 20 54 54 54 54 54 20 20 20 20 20 41 41 41 20 20 20 20 20 20 52 52 52 20 20 20 20 20 20 53 53 53 05 DB   "  S H O    SSS     TTTTT     AAA      RRR      SSS",5   
+8339   20 20 20 20 20 20 20 20 20 20 20 53 20 20 20 20 20 20 20 20 20 54 20 20 20 20 20 20 20 41 20 41 20 20 20 20 20 20 52 20 52 20 20 20 20 20 20 53 20 20 05 DB   "           S         T       A A      R R      S  ",5   
+836C   20 20 4F 20 2D 20 54 20 20 20 20 53 53 53 20 20 20 20 20 20 20 54 20 20 20 20 20 20 20 41 41 41 20 20 20 20 20 20 52 52 52 20 20 20 20 20 20 53 53 53 05 DB   "  O - T    SSS       T       AAA      RRR      SSS",5   
+839F   20 20 20 20 20 20 20 20 20 20 20 20 20 53 20 20 20 20 20 20 20 54 20 20 20 20 20 20 20 41 20 41 20 20 20 20 20 20 52 52 20 20 20 20 20 20 20 20 20 53 05 DB   "             S       T       A A      RR         S",5   
+83D2   20 20 49 20 4E 20 47 20 20 20 20 53 53 53 20 20 20 20 20 20 20 54 20 20 20 20 20 20 20 41 20 41 20 20 20 20 20 20 52 20 52 20 20 20 20 20 20 53 53 53 05 DB   "  I N G    SSS       T       A A      R R      SSS",5   
+8405   20 20 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 20 53 20 48 20 4F 20 4F 20 54 20 49 20 4E 20 47 20 20 53 20 54 20 41 20 52 20 53 20 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 05 DB   "  ********** S H O O T I N G  S T A R S **********",5   
+8438   20 20 20 20 20 20 20 20 20 20 20 20 20 20 41 20 20 42 52 41 49 4E 20 20 54 45 41 53 45 52 20 20 47 41 4D 45 20 20 20 20 20 20 20 20 20 20 20 20 20 20 05 DB   "              A  BRAIN  TEASER  GAME              ",5   
+846B   20 05                  DB   " ",5   
+846D   20 20 44 4F 20 59 4F 55 20 57 41 4E 54 20 49 4E 53 54 52 55 43 54 49 4F 4E 53 20 2D 2D 2D 3D 3E 28 59 2F 4E 2F 45 53 43 29 00 DB   "  DO YOU WANT INSTRUCTIONS ---=>(Y/N/ESC)",0   
+8497                             ;			
+8497   20 05        MESS1:    DB   " ",5   
+8499   20 20 48 45 59 21 20 59 4F 55 20 43 41 4E 20 4F 4E 4C 59 20 53 48 4F 4F 54 20 53 54 41 52 53 20 05 DB   "  HEY! YOU CAN ONLY SHOOT STARS ",5   
+84BA   20 20 4E 4F 54 20 42 4C 41 43 4B 20 48 4F 4C 45 53 2E 20 20 20 20 20 20 20 20 20 20 20 20 20 20 05 DB   "  NOT BLACK HOLES.              ",5   
+84DB   20 05                  DB   " ",5   
+84DD   20 20 54 52 59 20 41 47 41 49 4E 21 05 00 DB   "  TRY AGAIN!",5,0   
+84EB                             ; 
+84EB   20 20 54 48 41 54 20 57 41 53 4E 27 54 20 41 20 56 41 4C 49 44 20 53 54 41 52 20 4E 55 4D 42 45 52 21 20 05 MESS2:   DB   "  THAT WASN'T A VALID STAR NUMBER! ",5   
+850F   20 05                  DB   " ",5   
+8511   20 20 54 52 59 20 41 47 41 49 4E 21 05 00 DB   "  TRY AGAIN!",5,0   
+851F                             ; 
+851F   20 20 59 4F 55 20 4C 4F 53 54 20 54 48 45 20 47 41 4D 45 21 05 MESS3:   DB   "  YOU LOST THE GAME!",5   
+8534   20 20 57 41 4E 54 20 54 4F 20 53 48 4F 4F 54 20 4D 4F 52 45 20 53 54 41 52 53 3F 20 2D 2D 2D 3D 3E 28 59 2F 4E 29 00 DB   "  WANT TO SHOOT MORE STARS? ---=>(Y/N)",0   
+855B                             ; 
+855B   20 20 59 4F 55 20 57 49 4E 21 20 47 4F 4F 44 20 53 48 4F 4F 54 49 4E 47 21 05 MESS4:   DB   "  YOU WIN! GOOD SHOOTING!",5   
+8575   20 20 59 4F 55 20 46 49 52 45 44 20 3A 00 DB   "  YOU FIRED :",0   
+8583                             ; 
+8583   20 53 48 4F 54 53 2E 05 MESS5:   DB   " SHOTS.",5   
+858B   20 20 42 45 53 54 20 50 4F 53 53 49 42 4C 45 20 53 43 4F 52 45 20 49 53 20 31 31 20 53 48 4F 54 53 2E 05 DB   "  BEST POSSIBLE SCORE IS 11 SHOTS.",5   
+85AE   20 20 57 41 4E 54 20 54 4F 20 53 48 4F 4F 54 20 41 47 41 49 4E 2C 20 44 45 41 44 45 59 45 3F 20 2D 2D 2D 3D 3E 28 59 2F 4E 29 00 DB   "  WANT TO SHOOT AGAIN, DEADEYE? ---=>(Y/N)",0   
+85D9                             ; 
+85D9   20 20 59 4F 55 20 47 49 56 45 20 55 50 20 54 4F 4F 20 45 41 53 49 4C 59 21 05 MESS6:   DB   "  YOU GIVE UP TOO EASILY!",5   
+85F3   20 20 57 48 41 54 20 54 4F 20 53 48 4F 4F 54 20 4D 4F 52 45 20 53 54 41 52 53 3F 20 2D 2D 2D 3D 3E 28 59 2F 4E 29 00 DB   "  WHAT TO SHOOT MORE STARS? ---=>(Y/N)",0   
+861A                             ; 
+861A   20 20 59 4F 55 52 20 53 48 4F 54 3F 20 20 00 MESS7:   DB   "  YOUR SHOT?  ",0   
+8629                             ; 
+8629   20 05        MESS8:    DB   " ",5   
+862B   20 20 54 48 41 4E 4B 53 20 46 4F 52 20 50 4C 41 59 49 4E 47 2E 20 05 DB   "  THANKS FOR PLAYING. ",5   
+8642   20 20 53 4F 52 52 59 20 54 4F 20 53 45 45 20 59 4F 55 20 4C 45 41 56 45 2E 2E 2E 05 00 DB   "  SORRY TO SEE YOU LEAVE...",5,0   
+865F                             ; 
+865F   20 20 59 4F 55 20 53 48 4F 54 20 00 MESS9:   DB   "  YOU SHOT ",0   
+866B                             ; 
+866B   20 53 54 41 52 53 2E 20 05 00 MESS10:   DB   " STARS. ",5,0   
+8675                             ; 
+8675   20 20 54 48 45 52 45 20 41 52 45 20 53 54 41 52 53 20 20 20 20 20 20 20 20 20 2A 05 PAGE1:   DB   "  THERE ARE STARS         *",5   
+8691   20 20 54 48 45 52 45 20 41 52 45 20 42 4C 41 43 4B 20 48 4F 4C 45 53 20 20 20 2D 05 DB   "  THERE ARE BLACK HOLES   -",5   
+86AD   20 20 49 4E 20 54 48 45 20 55 4E 49 56 45 52 53 45 3A 20 20 20 20 20 20 20 58 20 20 58 20 20 58 05 DB   "  IN THE UNIVERSE:       X  X  X",5   
+86CE   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 58 20 20 58 20 20 58 05 DB   "                         X  X  X",5   
+86EF   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 58 20 20 58 20 20 58 05 DB   "                         X  X  X",5   
+8710   20 05                  DB   " ",5   
+8712   20 20 59 4F 55 20 53 48 4F 4F 54 20 41 20 53 54 41 52 20 05 DB   "  YOU SHOOT A STAR ",5   
+8726   20 20 28 4E 4F 54 20 41 20 42 4C 41 43 4B 20 48 4F 4C 45 29 05 DB   "  (NOT A BLACK HOLE)",5   
+873B   20 20 42 59 20 54 59 50 49 4E 47 20 49 54 27 53 20 4E 55 4D 42 45 52 3A 20 31 20 20 32 20 20 33 05 DB   "  BY TYPING IT'S NUMBER: 1  2  3",5   
+875C   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 34 20 20 35 20 20 36 05 DB   "                         4  5  6",5   
+877D   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 37 20 20 38 20 20 39 05 DB   "                         7  8  9",5   
+879E   20 05                  DB   " ",5   
+87A0   20 20 54 48 41 54 20 43 48 41 4E 47 45 53 20 54 48 45 20 53 54 41 52 20 49 4E 54 4F 20 41 20 42 4C 41 43 4B 20 48 4F 4C 45 2E 05 DB   "  THAT CHANGES THE STAR INTO A BLACK HOLE.",5   
+87CB   20 05                  DB   " ",5   
+87CD   20 28 54 4F 20 53 45 45 20 4D 4F 52 45 20 52 55 4C 45 53 2C 20 54 59 50 45 20 41 4E 59 20 4B 45 59 29 05 DB   " (TO SEE MORE RULES, TYPE ANY KEY)",5   
+87F0   20 00                  DB   " ",0   
+87F2                             ;			
+87F2   20 20 45 41 43 48 20 53 54 41 52 20 49 53 20 49 4E 20 41 20 47 41 4C 41 58 59 2E 20 57 48 45 4E 20 59 4F 55 20 05 PAGE2:   DB   "  EACH STAR IS IN A GALAXY. WHEN YOU ",5   
+8818   20 20 53 48 4F 4F 54 20 41 20 53 54 41 52 2C 20 45 56 45 52 59 54 48 49 4E 47 20 49 4E 20 49 54 27 53 20 47 41 4C 41 58 59 05 DB   "  SHOOT A STAR, EVERYTHING IN IT'S GALAXY",5   
+8842   20 20 43 48 41 4E 47 45 53 2E 20 53 54 41 52 53 20 42 45 43 4F 4D 45 20 42 4C 41 43 4B 20 48 4F 4C 45 53 05 DB   "  CHANGES. STARS BECOME BLACK HOLES",5   
+8866   20 20 41 4E 44 20 42 4C 41 43 4B 20 48 4F 4C 45 53 20 42 45 43 4F 4D 45 20 53 54 41 52 53 2E 05 DB   "  AND BLACK HOLES BECOME STARS.",5   
+8886   20 05                  DB   " ",5   
+8888   20 20 47 41 4C 41 58 49 45 53 3A 05 DB   "  GALAXIES:",5   
+8894   20 05                  DB   " ",5   
+8896   20 20 31 20 20 2A 20 20 2D 20 20 20 20 2A 20 20 32 20 20 2A 20 20 20 20 2D 20 20 2A 20 20 33 20 20 20 20 2A 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2A 20 20 2D 05 DB   "  1  *  -    *  2  *    -  *  3    *  -  -    -  *  -",5   
+88CC   20 20 2A 20 20 2A 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2A 20 20 2A 20 20 20 20 34 20 20 2D 20 20 2D 20 20 20 20 2A 20 20 35 20 20 2A 05 DB   "  *  *  -    -  -  -    -  *  *    4  -  -    *  5  *",5   
+8902   20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2A 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2A 20 20 2D 05 DB   "  -  -  -    -  -  -    -  -  -    *  -  -    -  *  -",5   
+8938   20 05                  DB   " ",5   
+893A   20 20 2D 20 20 2D 20 20 2A 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 05 DB   "  -  -  *    -  -  -    -  -  -    -  -  -",5   
+8965   20 20 2D 20 20 2D 20 20 36 20 20 20 20 2A 20 20 2A 20 20 2D 20 20 20 20 2D 20 20 2D 20 20 2D 20 20 20 20 2D 20 20 2A 20 20 2A 05 DB   "  -  -  6    *  *  -    -  -  -    -  *  *",5   
+8990   20 20 2D 20 20 2D 20 20 2A 20 20 20 20 37 20 20 2A 20 20 2D 20 20 20 20 2A 20 20 38 20 20 2A 20 20 20 20 2D 20 20 2A 20 20 39 05 DB   "  -  -  *    7  *  -    *  8  *    -  *  9",5   
+89BB   20 05                  DB   " ",5   
+89BD   20 20 28 54 59 50 45 20 41 4E 59 20 4B 45 59 20 46 4F 52 20 54 48 45 20 4C 41 53 54 20 50 41 47 45 20 4F 46 20 52 55 4C 45 53 2E 29 05 DB   "  (TYPE ANY KEY FOR THE LAST PAGE OF RULES.)",5   
+89EA   20 00                  DB   " ",0   
+89EC                             ; 
+89EC   20 20 54 48 45 20 47 41 4D 45 20 53 54 41 52 54 53 05 PAGE3:   DB   "  THE GAME STARTS",5   
+89FE   20 20 57 49 54 48 20 54 48 45 20 55 4E 49 56 45 52 53 45 20 20 20 20 20 2D 20 20 2D 20 20 2D 05 DB   "  WITH THE UNIVERSE     -  -  -",5   
+8A1E   20 20 4C 49 4B 45 20 54 48 49 53 3A 20 20 20 20 20 20 20 20 20 20 20 20 2D 20 20 2A 20 20 2D 05 DB   "  LIKE THIS:            -  *  -",5   
+8A3E   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 2D 20 20 2D 20 20 2D 05 DB   "                        -  -  -",5   
+8A5E   20 05                  DB   " ",5   
+8A60   20 20 59 4F 55 20 57 49 4E 20 57 48 45 4E 20 59 4F 55 20 20 20 20 20 20 2A 20 20 2A 20 20 2A 05 DB   "  YOU WIN WHEN YOU      *  *  *",5   
+8A80   20 20 43 48 41 4E 47 45 20 49 54 20 54 4F 20 54 48 49 53 3A 20 20 20 20 2A 20 20 2D 20 20 2A 05 DB   "  CHANGE IT TO THIS:    *  -  *",5   
+8AA0   20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 2A 20 20 2A 20 20 2A 05 DB   "                        *  *  *",5   
+8AC0   20 05                  DB   " ",5   
+8AC2   20 20 52 45 41 44 59 20 54 4F 20 50 4C 41 59 2E 20 54 59 50 45 20 41 4E 59 20 4B 45 59 20 54 4F 20 53 54 41 52 54 05 DB   "  READY TO PLAY. TYPE ANY KEY TO START",5   
+8AE9   20 20 54 48 45 20 47 41 4D 45 2E 20 47 4F 4F 44 20 4C 55 43 4B 2E 2E 2E 05 DB   "  THE GAME. GOOD LUCK...",5   
+8B02   20 00                  DB   " ",0   
+8B04                             ;							
+
+
+BEGIN:              8000 DEFINED AT LINE 11
+                    > USED AT LINE 58
+                    > USED AT LINE 60
+                    > USED AT LINE 94
+GAME_STR:           8042 DEFINED AT LINE 34
+                    > USED AT LINE 16
+                    > USED AT LINE 18
+                    > USED AT LINE 69
+                    > USED AT LINE 71
+RE_ENTER:           8053 DEFINED AT LINE 41
+                    > USED AT LINE 100
+                    > USED AT LINE 109
+                    > USED AT LINE 113
+U_LOST:             8088 DEFINED AT LINE 63
+                    > USED AT LINE 47
+SKIP7:              80B9 DEFINED AT LINE 81
+                    > USED AT LINE 45
+SKIP6:              80E0 DEFINED AT LINE 95
+                    > USED AT LINE 88
+SKIP4:              80F1 DEFINED AT LINE 103
+                    > USED AT LINE 96
+SKIP5:              8105 DEFINED AT LINE 111
+                    > USED AT LINE 105
+EXIT:               810E DEFINED AT LINE 116
+                    > USED AT LINE 123
+GIVE_UP:            8112 DEFINED AT LINE 120
+                    > USED AT LINE 20
+                    > USED AT LINE 61
+                    > USED AT LINE 79
+                    > USED AT LINE 91
+                    > USED AT LINE 93
+R_U_SURE:           811E DEFINED AT LINE 126
+                    > USED AT LINE 89
+ADD_SHOT:           812B DEFINED AT LINE 133
+                    > USED AT LINE 112
+RST_SHOT:           8132 DEFINED AT LINE 140
+                    > USED AT LINE 40
+TEST_SHOT:          8139 DEFINED AT LINE 147
+                    > USED AT LINE 86
+NXT_TEST:           8146 DEFINED AT LINE 152
+                    > USED AT LINE 161
+NO_KEY:             8156 DEFINED AT LINE 162
+                    > USED AT LINE 153
+MATCH:              8158 DEFINED AT LINE 163
+                    > USED AT LINE 148
+                    > USED AT LINE 156
+TEST_STAR:          8159 DEFINED AT LINE 167
+                    > USED AT LINE 103
+NOT_FIVE:           816A DEFINED AT LINE 177
+                    > USED AT LINE 173
+NOT_STAR:           8173 DEFINED AT LINE 181
+                    > USED AT LINE 179
+IS_STAR:            8175 DEFINED AT LINE 182
+                    > USED AT LINE 176
+                    > USED AT LINE 180
+CHANGE_UNI:         8176 DEFINED AT LINE 185
+                    > USED AT LINE 111
+DISP_UNIV:          8187 DEFINED AT LINE 202
+                    > USED AT LINE 41
+DISP_LOOP:          819B DEFINED AT LINE 213
+                    > USED AT LINE 242
+SKIP0:              81AB DEFINED AT LINE 220
+                    > USED AT LINE 217
+SKIP1:              81B6 DEFINED AT LINE 224
+                    > USED AT LINE 221
+SKIP2:              81C2 DEFINED AT LINE 230
+                    > USED AT LINE 225
+SKIP3:              81C7 DEFINED AT LINE 234
+                    > USED AT LINE 229
+STAR:               81D2 DEFINED AT LINE 238
+                    > USED AT LINE 234
+SPACE:              81D7 DEFINED AT LINE 240
+                    > USED AT LINE 237
+RETURN1:            81DF DEFINED AT LINE 243
+                    > USED AT LINE 214
+WIN_TEST:           81E2 DEFINED AT LINE 249
+                    > USED AT LINE 43
+NITHER:             81F8 DEFINED AT LINE 260
+                    > USED AT LINE 253
+LOOSER:             81FD DEFINED AT LINE 262
+                    > USED AT LINE 259
+WINNER:             8202 DEFINED AT LINE 264
+                    > USED AT LINE 257
+WIN_RTN:            8204 DEFINED AT LINE 265
+                    > USED AT LINE 261
+                    > USED AT LINE 263
+DPLY_SCORE:         8205 DEFINED AT LINE 268
+                    > USED AT LINE 53
+                    > USED AT LINE 76
+TEST_IT:            8212 DEFINED AT LINE 275
+                    > USED AT LINE 282
+                    > USED AT LINE 287
+                    > USED AT LINE 290
+SHOW_IT:            822E DEFINED AT LINE 291
+                    > USED AT LINE 277
+NO_HUND:            823B DEFINED AT LINE 297
+                    > USED AT LINE 293
+HUNDREDS:           8241 DEFINED AT LINE 300
+                    > USED AT LINE 296
+NO_TENS:            8244 DEFINED AT LINE 301
+                    > USED AT LINE 299
+PRINT_CHAR:         824B DEFINED AT LINE 308
+                    > USED AT LINE 149
+                    > USED AT LINE 236
+                    > USED AT LINE 239
+                    > USED AT LINE 241
+                    > USED AT LINE 294
+                    > USED AT LINE 300
+                    > USED AT LINE 302
+PRINT_TAB:          8253 DEFINED AT LINE 317
+                    > USED AT LINE 206
+                    > USED AT LINE 219
+                    > USED AT LINE 223
+TXT_DISPLAY:        8262 DEFINED AT LINE 332
+                    > USED AT LINE 13
+                    > USED AT LINE 23
+                    > USED AT LINE 27
+                    > USED AT LINE 31
+                    > USED AT LINE 52
+                    > USED AT LINE 55
+                    > USED AT LINE 66
+                    > USED AT LINE 75
+                    > USED AT LINE 78
+                    > USED AT LINE 84
+                    > USED AT LINE 98
+                    > USED AT LINE 107
+                    > USED AT LINE 122
+                    > USED AT LINE 128
+IN_CHAR:            826C DEFINED AT LINE 342
+                    > USED AT LINE 14
+                    > USED AT LINE 24
+                    > USED AT LINE 28
+                    > USED AT LINE 32
+                    > USED AT LINE 56
+                    > USED AT LINE 67
+                    > USED AT LINE 85
+                    > USED AT LINE 129
+LINEFEED:           8273 DEFINED AT LINE 350
+                    > USED AT LINE 11
+                    > USED AT LINE 21
+                    > USED AT LINE 25
+                    > USED AT LINE 29
+                    > USED AT LINE 33
+                    > USED AT LINE 34
+                    > USED AT LINE 35
+                    > USED AT LINE 49
+                    > USED AT LINE 50
+                    > USED AT LINE 63
+                    > USED AT LINE 64
+                    > USED AT LINE 72
+                    > USED AT LINE 73
+                    > USED AT LINE 81
+                    > USED AT LINE 82
+                    > USED AT LINE 99
+                    > USED AT LINE 108
+                    > USED AT LINE 116
+                    > USED AT LINE 120
+                    > USED AT LINE 126
+                    > USED AT LINE 204
+                    > USED AT LINE 205
+                    > USED AT LINE 218
+                    > USED AT LINE 222
+UNIVERSE:           8279 DEFINED AT LINE 359
+                    > USED AT LINE 36
+                    > USED AT LINE 167
+                    > USED AT LINE 188
+                    > USED AT LINE 208
+                    > USED AT LINE 249
+SCORE:              827B DEFINED AT LINE 361
+                    > USED AT LINE 133
+                    > USED AT LINE 140
+                    > USED AT LINE 274
+MASKTAB:            827C DEFINED AT LINE 367
+                    > USED AT LINE 150
+MESS0:              82A0 DEFINED AT LINE 378
+                    > USED AT LINE 12
+MESS1:              8497 DEFINED AT LINE 390
+                    > USED AT LINE 106
+MESS2:              84EB DEFINED AT LINE 396
+                    > USED AT LINE 97
+MESS3:              851F DEFINED AT LINE 400
+                    > USED AT LINE 65
+MESS4:              855B DEFINED AT LINE 403
+                    > USED AT LINE 51
+MESS5:              8583 DEFINED AT LINE 406
+                    > USED AT LINE 54
+MESS6:              85D9 DEFINED AT LINE 410
+                    > USED AT LINE 127
+MESS7:              861A DEFINED AT LINE 413
+                    > USED AT LINE 83
+MESS8:              8629 DEFINED AT LINE 415
+                    > USED AT LINE 121
+MESS9:              865F DEFINED AT LINE 419
+                    > USED AT LINE 74
+MESS10:             866B DEFINED AT LINE 421
+                    > USED AT LINE 77
+PAGE1:              8675 DEFINED AT LINE 423
+                    > USED AT LINE 22
+PAGE2:              87F2 DEFINED AT LINE 440
+                    > USED AT LINE 26
+PAGE3:              89EC DEFINED AT LINE 458
+                    > USED AT LINE 30
