@@ -4,3 +4,4 @@ footprint for half sized external clock for speeds upto 40 mHz, and foot print f
 memory chip..Input power from either a standard arduino 9 vdc power supply, the usb serial
 port via a jumper or the 5 volt pin on the power haeder..
 
+https://github.com/ScottBillingsley/Philosophy-of-Noise/blob/main/AVRduino%20EDDIE/AVRduino%20Eddie.png
