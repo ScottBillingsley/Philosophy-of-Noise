@@ -19,9 +19,10 @@
 #define NOP __asm__ __volatile__("nop\n\t")
 
 /* Port A pin 1 as OUTPUT for onboard LED */
-#define LED_BEGIN PORTA.DIRSET = PIN1_bm
+#define LED_BEGIN PORTA.DIRSET |= PIN1_bm
 #define LED_ON  PORTA.OUTSET = PIN1_bm
 #define LED_OFF PORTA.OUTCLR = PIN1_bm
+#define LED_TGL PORTA.OUTTGL = PIN1_bm
 
 /*
       Permission is hereby granted, free of charge, to any person obtaining a copy
