@@ -10,6 +10,10 @@
       Clock:            40 mHz external clock
       millis()/micro(): disabled, delay only
 
+      Bootloader burn required...
+      Reset pin         Hardware reset
+      MVIO              Enabled ( Jumper on 3.3 volt )
+      
       programmer:       SerialUPDI - 230400 Baud
 
 
@@ -83,6 +87,12 @@
 /************************ Includes ********************************/
 #include "globals.h"
 
+/* Define the main clock source as either _INTERNAL or _EXTERNAL */
+/* Remember to set the build options to the correct clock speed  */
+#define _EXTERNAL 0
+#define _INTERNAL 1
+#define MAIN_CLOCK _EXTERNAL
+
 /************************** Variables *****************************/
 
 
@@ -94,13 +104,23 @@
 /******************************************************************/
 int main() {
 
-  /* External 40 mHz clock */
-  /* Set main clock to external osc */
-  _PROTECTED_WRITE(CLKCTRL_MCLKCTRLA, 0X03);
-  /* No main clock prescaler */
-  _PROTECTED_WRITE(CLKCTRL_MCLKCTRLB, 0X00);
-  /* External 40 mHz clock */
-  _PROTECTED_WRITE(CLKCTRL_XOSCHFCTRLA, 0XAF);
+  /* Set the main system clock  */
+  if (MAIN_CLOCK == _INTERNAL) {
+    /* Set main clock to internal osc */
+    _PROTECTED_WRITE(CLKCTRL_MCLKCTRLA, 0X00);
+    /* No main clock prescaler */
+    _PROTECTED_WRITE(CLKCTRL_MCLKCTRLB, 0X00);
+    /* Internal 32 mHz */
+    _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, 0XAC);
+  } else {
+    /* External 40 mHz clock */
+    /* Set main clock to external osc */
+    _PROTECTED_WRITE(CLKCTRL_MCLKCTRLA, 0X03);
+    /* No main clock prescaler */
+    _PROTECTED_WRITE(CLKCTRL_MCLKCTRLB, 0X00);
+    /* External 40 mHz clock */
+    _PROTECTED_WRITE(CLKCTRL_XOSCHFCTRLA, 0XAF);
+  }
 
 
   /************************* Setup Pins ***************************/
