@@ -89,12 +89,6 @@
 #include "globals.h"
 #include "24LS256.h"
 
-/* Define the main clock source as either _INTERNAL or _EXTERNAL */
-/* Remember to set the build options to the correct clock speed  */
-#define _EXTERNAL 0
-#define _INTERNAL 1
-#define MAIN_CLOCK _EXTERNAL
-
 /* EEPROM address */
 uint8_t eeprom_address = 0x52;
 
@@ -109,9 +103,11 @@ uint8_t in_buffer[64];
 /***************************  MAIN ********************************/
 /******************************************************************/
 int main() {
-
-  /* Set the main system clock  */
-  if (MAIN_CLOCK == _INTERNAL) {
+  /*    
+   *     Set the main system clock for Internal 32 mHz 
+   *     or External 40 mHz according to the build options..
+   */
+    if (F_CPU == 32000000ul){
     /* Set main clock to internal osc */
     _PROTECTED_WRITE(CLKCTRL_MCLKCTRLA, 0X00);
     /* No main clock prescaler */
