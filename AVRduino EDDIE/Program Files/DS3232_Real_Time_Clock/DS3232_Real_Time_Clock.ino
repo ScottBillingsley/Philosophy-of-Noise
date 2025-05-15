@@ -91,12 +91,6 @@
 #include "DS3232_AVR.h"
 
 
-/* Define the main clock source as either _INTERNAL or _EXTERNAL */
-/* Remember to set the build options to the correct clock speed  */
-#define _EXTERNAL 0
-#define _INTERNAL 1
-#define MAIN_CLOCK _EXTERNAL
-
 /************************** Variables *****************************/
 
 
@@ -108,8 +102,11 @@
 /***************************  MAIN ********************************/
 /******************************************************************/
 int main() {
-  /* Set the main system clock  */
-  if (MAIN_CLOCK == _INTERNAL) {
+  /*    
+   *     Set the main system clock for Internal 32 mHz 
+   *     or External 40 mHz according to the build options..
+   */
+    if (F_CPU == 32000000ul){
     /* Set main clock to internal osc */
     _PROTECTED_WRITE(CLKCTRL_MCLKCTRLA, 0X00);
     /* No main clock prescaler */
