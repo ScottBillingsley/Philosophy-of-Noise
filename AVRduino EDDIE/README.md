@@ -14,3 +14,17 @@
   The UPDI header is wired for a USB to TTL breakout board..Olny GND, TX and RX pins are used..I
   have found the black boards by Hiletgo work very well but you will need a USB A Male to USB A 
   female cable..
+
+  DXCore
+
+  The board uses Spence Konde's DxCore 1.5.10 and a clean install of arduino IDE version 1.8.19.
+  The only trouble I have had is not setting the clock speed on upload. 
+  In the templet file you will find the portected writes for setting 
+  32 mHz internal or 40 mHz external clock based on the build option at upload.
+  Other clock frequencies can be calculated by using the data sheet section 12.4.
+  DxCore can be installed in the arduino IDE using the boards manager.
+  Lots of good infomation on the AVR chip and the features of the core can 
+  be found on the github repo..
+  [DxCore](https://github.com/SpenceKonde/DxCore)
+  
+  
