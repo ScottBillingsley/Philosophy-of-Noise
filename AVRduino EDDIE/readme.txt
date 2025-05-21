@@ -1,5 +1,5 @@
 
- <img src="images/AVRduino Eddie Model.png" alt="AVRduino EDDIE" width="300" height="200">
+ <img src="AVRduino EDDIE/images/AVRduino Eddie Model.png" alt="AVRduino EDDIE" width="300" height="200">
 
  AVRduino EDDIE is bussiness card sized microcontroller board based around the AVR128DB48..
 Features include, UPDI header, selectable USB serial, jumper for 3.3 or 5 volts on PORTC, 
