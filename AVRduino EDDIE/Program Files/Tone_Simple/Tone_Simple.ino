@@ -3,9 +3,10 @@
               Vernon Billingsley  c2025
               AVRduino AVR128DB48
 
-      Example of simple tone generation for the AVRduino EDDIE..
-      Tone generation is limited to PORTB. The pins are
-      PB0 to PB5.
+       A simple Square wave or PWM oscillator for the
+       AVRduino EDDIE...
+       Wave output is on PORTB
+       Gate output is on PORTA
 
       arduino IDE 1.8.19
       Board:            DxCore AVR DB-series (no bootloader)
