@@ -70,6 +70,25 @@ uint16_t Tone::pwm_calculate_count(float freq, uint16_t rate)
   return ((float)rate / freq);
 }
 
+/* Set the gate pin */
+void Tone::set_gate_pin(uint8_t _pin) {
+  _gate_pin = _pin;
+  /* Set pin as output */
+  PORTA.DIRSET |= _gate_pin;
+}
+
+/* Set gate pin HIGH */
+void Tone::gate_on() {
+  _running = true;
+  PORTA.OUTSET = _gate_pin;
+}
+
+/* Set gate pin HIGH */
+void Tone::gate_off() {
+  _running = false;
+  PORTA.OUTCLR = _gate_pin;
+}
+
 bool Tone::check()
 {
   if (counter >= compare_count) {
@@ -77,4 +96,10 @@ bool Tone::check()
   } else {
     return false;
   }
+}
+
+/* Check if the oscillator is running */
+bool Tone::is_running()
+{
+  return _running;
 }
