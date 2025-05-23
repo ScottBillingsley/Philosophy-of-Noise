@@ -2,6 +2,25 @@
 #define TONE_H_
 #include <Arduino.h>
 
+/*
+ *      A simple Square wave or PWM oscillator for the
+ *      AVRduino EDDIE...
+ *      Wave output is on PORTB
+ *      Gate output is on PORTA
+ *      
+ */
+
+/* Gate pins defines */
+#define PA0 PIN0_bm
+#define PA1 PIN1_bm
+#define PA2 PIN2_bm
+#define PA3 PIN3_bm
+#define PA4 PIN4_bm
+#define PA5 PIN5_bm
+#define PA6 PIN6_bm
+#define PA7 PIN7_bm
+
+
 /* Output pins defines */
 #define PB0 PIN0_bm
 #define PB1 PIN1_bm
@@ -35,8 +54,17 @@
  *              Returns the compare count for a given frequency
  *    uint16_t pwm_calculate_count(float freq, uint16_t rate)          
  *              Return the pwm compare count for a given frequency
+ *    void set_gate_pin(uint8_t _pin)          
+ *              Set the gate pin for the oscillator
+ *    void gate_on()          
+ *              Sets the gate pin HIGH
+ *    void gate_off()          
+ *              Sets the gate pin LOW
  *    bool check()          
  *              Checks if the counter equals the compare count
+ *    bool check()          
+ *              Checks if the gate pin is HIGH and the oscillator in running
+ *              
  */
 
 class Tone {
@@ -46,6 +74,8 @@ class Tone {
     uint16_t compare_count;
     uint8_t _PIN;
     uint8_t _duty = 64;
+    uint8_t _gate_pin;
+    bool _running = false;    
 
   public:
     Tone(uint8_t _pin);
@@ -59,6 +89,10 @@ class Tone {
     void off();
     uint16_t calculate_count(float freq, uint16_t rate);
     uint16_t pwm_calculate_count(float freq, uint16_t rate);
+    void set_gate_pin(uint8_t _pin);
+    void gate_on();
+    void gate_off();
+    bool is_running();    
     bool check();
 
 }; /* End note timer */
