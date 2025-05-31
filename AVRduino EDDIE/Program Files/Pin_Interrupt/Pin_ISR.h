@@ -5,7 +5,7 @@
 /* 
  *  Setup the ISR for the pin interrupt..
  *  Use:
- *  ISR_PORTx.attach_interrupt(function);
+ *  ISR_PORTx::attach_interrupt(function);
  */
 
 /* Type define for the callback function */
